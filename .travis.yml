@@ -21,6 +21,6 @@ env:
 notifications:
   - false
 before_script:
-  - psql -c 'create database test_hello_books_db;' -U postgres
+  - psql -c 'create database test_hello_books;' -U postgres
 after_success:
   - codecov
