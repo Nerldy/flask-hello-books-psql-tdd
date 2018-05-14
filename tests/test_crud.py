@@ -25,13 +25,19 @@ class BooklistTestCase(unittest.TestCase):
 
 	def test_api_booklist_creation(self):
 		"""test api can POST a book"""
-		res = self.client().post('/api/v2/books', data=json.dumps(self.bookslist), content_type='application/json')
+		res = self.client().post(
+			'/api/v2/books',
+			data=json.dumps(self.bookslist),
+			content_type='application/json')
 		self.assertEqual(res.status_code, 201)
 		self.assertIn('book_created', str(res.data))
 
 	def test_api_gets_all_books(self):
 		"""test api GET all books"""
-		res = self.client().post('/api/v2/books', data=json.dumps(self.bookslist), content_type='application/json')
+		res = self.client().post(
+			'/api/v2/books',
+			data=json.dumps(self.bookslist),
+			content_type='application/json')
 		self.assertIn('book_created', str(res.data))
 		res = self.client().get('/api/v2/books')
 		self.assertEqual(res.status_code, 200)
@@ -39,7 +45,10 @@ class BooklistTestCase(unittest.TestCase):
 
 	def test_api_can_get_book_by_id(self):
 		"""test api GET book by ID"""
-		res = self.client().post('/api/v2/books', data=json.dumps(self.bookslist), content_type='application/json')
+		res = self.client().post(
+			'/api/v2/books',
+			data=json.dumps(self.bookslist),
+			content_type='application/json')
 		self.assertEqual(res.status_code, 201)
 		result_in_json = json.loads(res.data.decode('utf-8').replace("'", "\""))
 		result = self.client().get(f'/api/v2/books/{result_in_json["id"]}')
@@ -62,7 +71,7 @@ class BooklistTestCase(unittest.TestCase):
 	def test_api_book_delete(self):
 		"""test api DELETE removes book"""
 		book = {'title': 'Armin vaan Buuren', 'isbn': '6255415789'}
-		res = self.client().post('/api/v2/books',  data=json.dumps(book), content_type='application/json')
+		res = self.client().post('/api/v2/books', data=json.dumps(book), content_type='application/json')
 		self.assertEqual(res.status_code, 201)
 		self.assertIn('armin', str(res.data))
 		rv = self.client().delete('/api/v2/books/1')
