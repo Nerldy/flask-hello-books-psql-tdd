@@ -3,6 +3,8 @@ omit =
     venv/*
     */python?.?/*
     */site-packages/nose/*
+    manage.py
+    run.py
 
 [report]
 exclude_lines =
@@ -16,3 +18,5 @@ omit =
     */python?.?/*
     */site-packages/nose/*
     tests/*
+    manage.py
+    run.py
