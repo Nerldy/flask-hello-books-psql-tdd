@@ -111,4 +111,20 @@ def create_app(config_name):
 
 		return jsonify({'error': validate_book_schema.errors}), 400
 
+	@app.route('/api/v2/books/<int:id>')
+	def api_get_book_with_id(id):
+
+		book = Booklist.query.filter(Booklist.id == id).first()
+
+		if not book:
+			abort(404)
+
+		return jsonify({
+			'id': book.id,
+			'title': book.title,
+			'isbn': book.isbn,
+			'date_created': book.date_created,
+			'date_modified': book.date_modified
+		})
+
 	return app
