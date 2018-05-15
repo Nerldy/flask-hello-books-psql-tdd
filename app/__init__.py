@@ -179,4 +179,8 @@ def create_app(config_name):
 		book.delete()
 		return jsonify({'message': f'Book with ID {book.id} deleted'})
 
+	# authentication blueprint
+	from .auth import auth_blueprint
+	app.register_blueprint(auth_blueprint)
+
 	return app
