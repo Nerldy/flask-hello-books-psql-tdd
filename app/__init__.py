@@ -36,7 +36,16 @@ book_schema = {
 	}
 }
 
+update_book_schema = {
+	'title': {
+		'type': 'string',
+		'required': True,
+		'empty': False
+	}
+}
+
 validate_book_schema = Validator(book_schema)
+validate_update_book_schema = Validator(update_book_schema)
 
 
 def create_app(config_name):
@@ -107,7 +116,7 @@ def create_app(config_name):
 
 				return jsonify({'error': "isbn must only include numbers"}), 400
 			except:
-				abort(400)
+				return jsonify({'error': f"book with ISBN {req_data.get('isbn')} already exists"}), 400
 
 		return jsonify({'error': validate_book_schema.errors}), 400
 
@@ -126,5 +135,46 @@ def create_app(config_name):
 			'date_created': book.date_created,
 			'date_modified': book.date_modified
 		})
+
+	@app.route('/api/v2/books/<int:id>', methods=['PUT'])
+	def api_update_book(id):
+		req_data = request.get_json()
+		book = Booklist.query.filter(Booklist.id == id).first()
+
+		if not req_data:
+			"""abort if no JSON object detected"""
+			abort(400)
+
+		if not book:
+			abort(404)
+
+		if validate_update_book_schema.validate(req_data):
+			try:
+				title = format_inputs(req_data.get('title'))
+				book.title = title
+				book.save()
+
+				book_json = {
+					'id': book.id,
+					'title': book.title,
+					'isbn': book.isbn,
+					'date_created': book.date_created,
+					'date_modified': book.date_modified
+				}
+
+				return jsonify({"book_updated": book_json}), 201
+
+			except:
+				abort(400)
+
+	@app.route('/api/v2/books/<int:id>', methods=['DELETE'])
+	def api_delete_book(id):
+		book = Booklist.query.filter(Booklist.id == id).first()
+
+		if not book:
+			abort(404)
+
+		book.delete()
+		return jsonify({'message': f'Book with ID {book.id} deleted'})
 
 	return app
