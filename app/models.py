@@ -27,6 +27,7 @@ class Booklist(db.Model):
 
 	def delete(self):
 		db.session.delete(self)
+		db.session.commit()
 
 	def __repr__(self):
 		return f"<Book {self.title}"
