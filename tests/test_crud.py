@@ -32,6 +32,84 @@ class BooklistTestCase(unittest.TestCase):
 		self.assertEqual(res.status_code, 201)
 		self.assertIn('book_created', str(res.data))
 
+	def test_api_book_create_no_json_error(self):
+		"""test API returns 400 error"""
+		book = ""
+		res = self.client().post(
+			'/api/v2/books',
+			data=json.dumps(book),
+			content_type='application/json'
+		)
+		self.assertEqual(res.status_code, 400)
+		self.assertIn('bad request', str(res.data))
+
+	def test_api_create_book_validation_error(self):
+		"""test API validation error"""
+		book = {
+			'title': "bool"
+		}
+		res = self.client().post(
+			'/api/v2/books',
+			data=json.dumps(book),
+			content_type='application/json'
+		)
+		self.assertEqual(res.status_code, 400)
+		self.assertIn('error', str(res.data))
+
+	def test_create_book_isbn_error(self):
+		"""test API can't create book if ISBN length is not 10 digits"""
+		book = {
+			'title': "bool",
+			"isbn": "56951478"
+		}
+		res = self.client().post(
+			'/api/v2/books',
+			data=json.dumps(book),
+			content_type='application/json'
+		)
+		self.assertEqual(res.status_code, 400)
+		self.assertIn('isbn length must be 10', str(res.data))
+
+	def test_create_book_isbn_must_be_nubers(self):
+		"""test API can't create book if ISBN are only numbers"""
+		book = {
+			'title': "bool",
+			"isbn": "845623369r"
+		}
+		res = self.client().post(
+			'/api/v2/books',
+			data=json.dumps(book),
+			content_type='application/json'
+		)
+		self.assertEqual(res.status_code, 400)
+		self.assertIn('isbn must only include numbers', str(res.data))
+
+	def test_create_book_isbn_exists(self):
+		"""test API can't create book if ISBN are only numbers"""
+		book = {
+			'title': "bool",
+			"isbn": "5698874586"
+		}
+
+		book2 = {
+			'title': "bool",
+			"isbn": "5698874586"
+		}
+
+		res = self.client().post(
+			'/api/v2/books',
+			data=json.dumps(book),
+			content_type='application/json'
+		)
+		self.assertEqual(res.status_code, 201)
+		self.assertIn('book_created', str(res.data))
+		res = self.client().post(
+			'/api/v2/books',
+			data=json.dumps(book2),
+			content_type='application/json'
+		)
+		self.assertIn('already exists', str(res.data))
+
 	def test_api_gets_all_books(self):
 		"""test api GET all books"""
 		res = self.client().post(
@@ -54,31 +132,31 @@ class BooklistTestCase(unittest.TestCase):
 		result = self.client().get('/api/v2/books/{result_in_json["book_created"]["id"]}')
 		self.assertIn('hello books', str(res.data))
 
-	# def test_api_book_can_be_edited(self):
-	# 	"""test api PUT book updates book"""
-	# 	book = {'title': 'Armin vaan Buuren', 'isbn': '6255415789'}
-	# 	res = self.client().post('/api/v2/books', data=json.dumps(book), content_type='application/json')
-	# 	self.assertEqual(res.status_code, 201)
-	# 	self.assertIn('armin', str(res.data))
-	# 	res = self.client().put(
-	# 		'/api/v2/books/1',
-	# 		data=json.dumps({'title': "from the grave"}),
-	# 		content_type='application/json')
-	# 	result = self.client().get('/api/v2/books/1')
-	# 	self.assertIn('from the grave', str(result.data))
-	#
-	# def test_api_book_delete(self):
-	# 	"""test api DELETE removes book"""
-	# 	book = {'title': 'Armin vaan Buuren', 'isbn': '6255415789'}
-	# 	res = self.client().post('/api/v2/books', data=json.dumps(book), content_type='application/json')
-	# 	self.assertEqual(res.status_code, 201)
-	# 	self.assertIn('armin', str(res.data))
-	# 	rv = self.client().delete('/api/v2/books/1')
-	# 	self.assertEqual(rv.status_code, 200)
-	#
-	# 	# Test book search returns 404
-	# 	result = self.client().get('/api/v2/books/1')
-	# 	self.assertEqual(result.status_code, 404)
+	def test_api_book_can_be_edited(self):
+		"""test api PUT book updates book"""
+		book = {'title': 'Armin vaan Buuren', 'isbn': '6255415789'}
+		res = self.client().post('/api/v2/books', data=json.dumps(book), content_type='application/json')
+		self.assertEqual(res.status_code, 201)
+		self.assertIn('armin', str(res.data))
+		res = self.client().put(
+			'/api/v2/books/1',
+			data=json.dumps({'title': "from the grave"}),
+			content_type='application/json')
+		result = self.client().get('/api/v2/books/1')
+		self.assertIn('from the grave', str(result.data))
+
+	def test_api_book_delete(self):
+		"""test api DELETE removes book"""
+		book = {'title': 'Armin vaan Buuren', 'isbn': '6255415789'}
+		res = self.client().post('/api/v2/books', data=json.dumps(book), content_type='application/json')
+		self.assertEqual(res.status_code, 201)
+		self.assertIn('armin', str(res.data))
+		rv = self.client().delete('/api/v2/books/1')
+		self.assertEqual(rv.status_code, 200)
+
+		# Test book search returns 404
+		result = self.client().get('/api/v2/books/1')
+		self.assertEqual(result.status_code, 404)
 
 
 if __name__ == "__main__":
