@@ -132,6 +132,27 @@ class BooklistTestCase(unittest.TestCase):
 		result = self.client().get('/api/v2/books/{result_in_json["book_created"]["id"]}')
 		self.assertIn('hello books', str(res.data))
 
+	def test_api_no_json(self):
+		"""test api detects no JSON """
+		book = {'title': 'Armin vaan Buuren', 'isbn': '6255415789'}
+		res = self.client().post('/api/v2/books', data=json.dumps(book), content_type='application/json')
+		self.assertEqual(res.status_code, 201)
+		self.assertIn('armin', str(res.data))
+		book = {}
+		res = self.client().put(
+			'/api/v2/books/1',
+			data=json.dumps(book),
+			content_type='application/json')
+		self.assertEqual(res.status_code, 400)
+
+	def test_api_update_book_not_found(self):
+		"""test api book with id not found"""
+		res = self.client().put(
+			'/api/v2/books/1',
+			data=json.dumps({'title': "from the grave"}),
+			content_type='application/json')
+		self.assertEqual(res.status_code, 404)
+
 	def test_api_book_can_be_edited(self):
 		"""test api PUT book updates book"""
 		book = {'title': 'Armin vaan Buuren', 'isbn': '6255415789'}
@@ -145,6 +166,18 @@ class BooklistTestCase(unittest.TestCase):
 		result = self.client().get('/api/v2/books/1')
 		self.assertIn('from the grave', str(result.data))
 
+	def test_api_update_book_validation_error(self):
+		"""test api throws a validation error for the schema"""
+		book = {'title': 'Armin vaan Buuren', 'isbn': '6255415789'}
+		res = self.client().post('/api/v2/books', data=json.dumps(book), content_type='application/json')
+		self.assertEqual(res.status_code, 201)
+		self.assertIn('armin', str(res.data))
+		res = self.client().put(
+			'/api/v2/books/1',
+			data=json.dumps({'title': "from the grave", "ola": "kilo"}),
+			content_type='application/json')
+		self.assertIn('unknown field', str(res.data))
+
 	def test_api_book_delete(self):
 		"""test api DELETE removes book"""
 		book = {'title': 'Armin vaan Buuren', 'isbn': '6255415789'}
@@ -157,6 +190,11 @@ class BooklistTestCase(unittest.TestCase):
 		# Test book search returns 404
 		result = self.client().get('/api/v2/books/1')
 		self.assertEqual(result.status_code, 404)
+
+	def test_delete_book_not_found(self):
+		"""test api returns no book found"""
+		rv = self.client().delete('/api/v2/books/1')
+		self.assertEqual(rv.status_code, 404)
 
 
 if __name__ == "__main__":
