@@ -66,6 +66,10 @@ def create_app(config_name):
 	def bad_request(e):
 		return jsonify({"error": 'bad request'}), 400
 
+	@app.errorhandler(500)
+	def internal_server_error(e):
+		return jsonify({'error': 'internal server error'}), 500
+
 	@app.route('/api/v2/books')
 	def api_get_all_books():
 		"""
@@ -149,23 +153,21 @@ def create_app(config_name):
 			abort(404)
 
 		if validate_update_book_schema.validate(req_data):
-			try:
-				title = format_inputs(req_data.get('title'))
-				book.title = title
-				book.save()
+			title = format_inputs(req_data.get('title'))
+			book.title = title
+			book.save()
 
-				book_json = {
-					'id': book.id,
-					'title': book.title,
-					'isbn': book.isbn,
-					'date_created': book.date_created,
-					'date_modified': book.date_modified
-				}
+			book_json = {
+				'id': book.id,
+				'title': book.title,
+				'isbn': book.isbn,
+				'date_created': book.date_created,
+				'date_modified': book.date_modified
+			}
 
-				return jsonify({"book_updated": book_json}), 201
+			return jsonify({"book_updated": book_json}), 201
 
-			except:
-				abort(400)
+		return jsonify({'error': validate_update_book_schema.errors})
 
 	@app.route('/api/v2/books/<int:id>', methods=['DELETE'])
 	def api_delete_book(id):
