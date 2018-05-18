@@ -94,7 +94,7 @@ class AuthTestCase(unittest.TestCase):
 			data=json.dumps(user_data),
 			content_type='application/json')
 
-		result = json.loads(login_res.data.decode())
+		result = json.loads(login_res.get_data(as_text=True))
 		self.assertEqual(result['message'], 'successfully logged in')
 		self.assertEqual(result.status_code, 200)
 		self.assertTrue(result['access_token'])
@@ -104,7 +104,8 @@ class AuthTestCase(unittest.TestCase):
 
 		fake_user = {
 			'username': "faker",
-			'password': "faker_faker#R"
+			'password': "faker_faker#R",
+			'email': 'fake@mail.com'
 		}
 
 		res = self.client().post(
@@ -113,5 +114,4 @@ class AuthTestCase(unittest.TestCase):
 			content_type='application/json')
 
 		result = json.loads(res.data.decode())
-		self.assertEqual(res.status_code, 401)
-		self.assertEqual(result['error'], 'invalid username, password or email. Try again or register')
+		self.assertEqual(res.status_code, 404)
