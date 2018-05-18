@@ -113,5 +113,4 @@ class AuthTestCase(unittest.TestCase):
 			data=json.dumps(fake_user),
 			content_type='application/json')
 
-		result = json.loads(res.data.decode())
 		self.assertEqual(res.status_code, 404)
