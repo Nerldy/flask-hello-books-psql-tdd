@@ -113,4 +113,6 @@ class AuthTestCase(unittest.TestCase):
 			data=json.dumps(fake_user),
 			content_type='application/json')
 
-		self.assertEqual(res.status_code, 404)
+		result = json.loads(res.data.decode())
+		self.assertEqual(res.status_code, 401)
+		self.assertEqual(result['error'], 'user not found. Please register')
