@@ -126,7 +126,7 @@ class Loginview(MethodView):
 
 	def post(self):
 		"""handle POST request for login view"""
-		post_data = request.get_json()
+		post_data = request.get_json(force=True)
 
 		if not post_data:
 			abort(400)
@@ -154,7 +154,7 @@ class Loginview(MethodView):
 						return make_response(jsonify(
 							{
 								'message': "successfully logged in",
-								'access_token': access_token.decode("UTF-8")
+								'access_token': access_token.decode()
 							}
 						)), 200
 
