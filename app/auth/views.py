@@ -126,7 +126,7 @@ class Loginview(MethodView):
 
 	def post(self):
 		"""handle POST request for login view"""
-		post_data = request.get_json(force=True)
+		post_data = request.get_json()
 
 		if not post_data:
 			abort(400)
