@@ -138,7 +138,7 @@ class Loginview(MethodView):
 			)).first()
 
 		if not user:
-			abort(404)
+			return jsonify({'error': "user not found. Please register"}), 401
 
 		try:
 
@@ -161,7 +161,7 @@ class Loginview(MethodView):
 				return make_response(
 					jsonify(
 						{
-							'error': 'invalid username, password or email. Try again or register'
+							'error': 'invalid username, password or email. Try again.'
 						}
 					)
 				), 401
