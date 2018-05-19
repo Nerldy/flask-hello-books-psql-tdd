@@ -1,7 +1,6 @@
-from flask import Flask, jsonify, request, abort
+from flask import Flask, jsonify, request, abort, make_response
 from flask_sqlalchemy import SQLAlchemy
 from cerberus import Validator
-from app.helpers_funcs import token_required
 import re
 
 # local import
@@ -51,6 +50,7 @@ validate_update_book_schema = Validator(update_book_schema)
 
 def create_app(config_name):
 	from app.models import Booklist
+	from app.helpers_funcs import token_required, check_admin
 
 	app = Flask(__name__, instance_relative_config=True)
 	app.config.from_object(app_config[config_name])
@@ -58,6 +58,10 @@ def create_app(config_name):
 	app.url_map.strict_slashes = False
 	app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 	db.init_app(app)
+
+	@app.errorhandler(403)
+	def forbidden(e):
+		return jsonify({'error': 'forbidden'}), 403
 
 	@app.errorhandler(404)
 	def page_not_found(e):
@@ -93,8 +97,8 @@ def create_app(config_name):
 	@app.route('/api/v2/books', methods=['POST'])
 	@token_required
 	def api_create_book(current_user):
-		if not current_user.is_admin:
-			abort(402)
+
+		check_admin(current_user)
 
 		req_data = request.get_json()
 
