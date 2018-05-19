@@ -115,4 +115,53 @@ class AuthTestCase(unittest.TestCase):
 
 		result = json.loads(res.data.decode())
 		self.assertEqual(res.status_code, 401)
-		self.assertEqual(result['error'], 'user not found. Please register')
+		self.assertEqual(result['error'], 'Invalid username or email. Please try again or register')
+
+	def test_login_no_json_data(self):
+		data = ""
+		res = self.client().post(
+			'/api/v2/auth/login',
+			data=json.dumps(data),
+			content_type='application/json')
+		self.assertEqual(res.status_code, 400)
+
+	def test_login_wrong_password_error(self):
+		res = self.client().post(
+			'/api/v2/auth/register',
+			data=json.dumps(self.user_data),
+			content_type='application/json')
+		self.assertEqual(res.status_code, 201)
+
+		user_data = {
+			'username': 'tester',
+			'email': 'tester@mail.com',
+			'password': ',5Test_password85'
+		}
+		login_res = self.client().post(
+			'/api/v2/auth/login',
+			data=json.dumps(user_data),
+			content_type='application/json')
+
+		result = json.loads(login_res.data.decode())
+		self.assertEqual(result['error'], 'invalid password. Try again.')
+		self.assertEqual(login_res.status_code, 401)
+
+	def test_login_invalid_schema_error(self):
+		res = self.client().post(
+			'/api/v2/auth/register',
+			data=json.dumps(self.user_data),
+			content_type='application/json')
+		self.assertEqual(res.status_code, 201)
+
+		user_data = {
+			'username': 'tester',
+			'email': 'tester@mail.com'
+		}
+		login_res = self.client().post(
+			'/api/v2/auth/login',
+			data=json.dumps(user_data),
+			content_type='application/json')
+
+		result = json.loads(login_res.data.decode())
+		self.assertIn('error', str(result))
+		self.assertEqual(login_res.status_code, 401)
