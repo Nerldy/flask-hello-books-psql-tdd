@@ -5,7 +5,6 @@ from app.models import Booklist, APIUser
 from cerberus import Validator
 from app import db
 import re
-import jwt
 
 login_schema = {
 	'username': {
@@ -138,7 +137,7 @@ class Loginview(MethodView):
 			)).first()
 
 		if not user:
-			return jsonify({'error': "user not found. Please register"}), 401
+			return jsonify({'error': "Invalid username or email. Please try again or register"}), 401
 
 		try:
 
@@ -160,7 +159,7 @@ class Loginview(MethodView):
 				return make_response(
 					jsonify(
 						{
-							'error': 'invalid username, password or email. Try again.'
+							'error': 'invalid password. Try again.'
 						}
 					)
 				), 401
