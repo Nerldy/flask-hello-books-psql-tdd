@@ -44,8 +44,21 @@ update_book_schema = {
 	}
 }
 
+pagination_schema = {
+	'limit': {
+		'type': 'string',
+		'required': False
+	},
+	'page_num': {
+		'type': 'string',
+		'required': False
+	}
+}
+
+# schema validations
 validate_book_schema = Validator(book_schema)
 validate_update_book_schema = Validator(update_book_schema)
+validate_pagination_schema = Validator(pagination_schema)
 
 
 def create_app(config_name):
@@ -76,6 +89,7 @@ def create_app(config_name):
 		return jsonify({'error': 'internal server error'}), 500
 
 	@app.route('/api/v2/books')
+	@token_required
 	def api_get_all_books():
 		"""
 		:return: book list, 200
@@ -134,6 +148,7 @@ def create_app(config_name):
 		return jsonify({'error': validate_book_schema.errors}), 400
 
 	@app.route('/api/v2/books/<int:id>')
+	@token_required
 	def api_get_book_with_id(id):
 
 		book = Booklist.query.filter(Booklist.id == id).first()
@@ -152,6 +167,9 @@ def create_app(config_name):
 	@app.route('/api/v2/books/<int:id>', methods=['PUT'])
 	@token_required
 	def api_update_book(current_user, id):
+
+		check_admin(current_user)
+
 		req_data = request.get_json()
 		book = Booklist.query.filter(Booklist.id == id).first()
 
@@ -182,6 +200,9 @@ def create_app(config_name):
 	@app.route('/api/v2/books/<int:id>', methods=['DELETE'])
 	@token_required
 	def api_delete_book(current_user, id):
+
+		check_admin(current_user)
+
 		book = Booklist.query.filter(Booklist.id == id).first()
 
 		if not book:
