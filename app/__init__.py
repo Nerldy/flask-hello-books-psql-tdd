@@ -47,11 +47,11 @@ update_book_schema = {
 pagination_schema = {
 	'limit': {
 		'type': 'string',
-		'required': False
+		'required': True
 	},
 	'page_num': {
 		'type': 'string',
-		'required': False
+		'required': True
 	}
 }
 
@@ -89,13 +89,56 @@ def create_app(config_name):
 		return jsonify({'error': 'internal server error'}), 500
 
 	@app.route('/api/v2/books')
-	@token_required
+	# @token_required
 	def api_get_all_books():
 		"""
 		:return: book list, 200
 		"""
 		all_books = Booklist.get_all()
 		books_result = []
+
+		req_args = request.args
+
+		# check if pagination args are provided
+		if req_args:
+			if validate_pagination_schema.validate(req_args):
+				try:
+					page_limit = int(request.args.get('limit'))
+					page_number = int(request.args.get('page_num'))
+
+					book_pagination = Booklist.query.paginate(
+						per_page=page_limit,
+						page=page_number,
+						error_out=True
+					)
+
+					for book in book_pagination.items:
+						book_obj = {
+							'id': book.id,
+							'title': book.title,
+							'isbn': book.isbn,
+							'date_created': book.date_created,
+							'date_modified': book.date_modified
+						}
+						books_result.append(book_obj)
+
+					return make_response(
+						jsonify({
+							'current_page': book_pagination.page,
+							'pages': book_pagination.pages,
+							"books": books_result
+						})
+					)
+				except Exception as e:
+					return make_response(
+						jsonify(
+							{
+								'error': str(e)
+							}
+						)
+					), 400
+
+			return make_response(jsonify({'error': validate_pagination_schema.errors})), 400
 
 		for book in all_books:
 			book_obj = {
