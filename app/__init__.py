@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request, abort
 from flask_sqlalchemy import SQLAlchemy
 from cerberus import Validator
+from app.helpers_funcs import token_required
 import re
 
 # local import
@@ -90,7 +91,11 @@ def create_app(config_name):
 		return jsonify({'books': books_result})
 
 	@app.route('/api/v2/books', methods=['POST'])
-	def api_create_book():
+	@token_required
+	def api_create_book(current_user):
+		if not current_user.is_admin:
+			abort(402)
+
 		req_data = request.get_json()
 
 		if not req_data:
@@ -141,7 +146,8 @@ def create_app(config_name):
 		})
 
 	@app.route('/api/v2/books/<int:id>', methods=['PUT'])
-	def api_update_book(id):
+	@token_required
+	def api_update_book(current_user, id):
 		req_data = request.get_json()
 		book = Booklist.query.filter(Booklist.id == id).first()
 
@@ -170,7 +176,8 @@ def create_app(config_name):
 		return jsonify({'error': validate_update_book_schema.errors})
 
 	@app.route('/api/v2/books/<int:id>', methods=['DELETE'])
-	def api_delete_book(id):
+	@token_required
+	def api_delete_book(current_user, id):
 		book = Booklist.query.filter(Booklist.id == id).first()
 
 		if not book:
