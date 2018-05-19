@@ -1,5 +1,5 @@
 from functools import wraps
-from flask import request, jsonify, current_app
+from flask import request, jsonify, current_app, make_response, abort
 import jwt
 from app.models import APIUser
 
@@ -10,18 +10,38 @@ def token_required(f):
 		token = None
 
 		if 'Authorization' in request.headers:
-			token = request.headers['Authorization']
+			auth_header = request.headers.get('Authorization')
+			try:
+				token = auth_header.split(" ")[1]
+			except IndexError:
+				return make_response(jsonify({
+					'error': 'provide a valid auth token'
+				})), 403
 
 		if not token:
-			return jsonify({'error': 'token is missing'}), 401
+			return make_response(jsonify({'error': 'token is missing'})), 401
 
 		try:
-			data = jwt.decode(token, str(current_app.config['SECRET']))
-			current_user = APIUser.query.filter_by(user_id=data['id']).first()
+			decode_response = APIUser.decode_token(token)
+			current_user = APIUser.query.filter_by(id=decode_response).first()
 		except:
-			return jsonify({'error': "token is invalid"}), 401
+			message = 'Invalid token'
+			if isinstance(decode_response, str):
+				message = decode_response
+			return make_response(jsonify({
+				'status': 'failed',
+				'message': message
+			})), 401
 
 		return f(current_user, *args, **kwargs)
 
 	return decorated
 
+
+def check_admin(user):
+	"""
+	Prevent non-admins from accessing the page
+	:return: 403
+	"""
+	if not user.is_admin:
+		abort(403)
