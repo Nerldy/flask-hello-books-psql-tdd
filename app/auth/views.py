@@ -148,7 +148,6 @@ class Loginview(MethodView):
 				if user.verify_password(password=password):
 					# Generate the access token. This will be used as the authorization header
 					access_token = user.generate_token(user.id)
-					print(access_token)
 
 					if access_token:
 						return make_response(jsonify(
