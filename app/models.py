@@ -93,7 +93,7 @@ class APIUser(db.Model):
 			# create the byte string token using the payload and the SECRET key
 			jwt_string = jwt.encode(
 				payload=payload,
-				key=current_app.config.get('SECRET'),
+				key=str(current_app.config.get('SECRET')),
 				algorithm='HS256'
 			)
 
