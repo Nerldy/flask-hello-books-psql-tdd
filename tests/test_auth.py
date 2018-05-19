@@ -94,9 +94,9 @@ class AuthTestCase(unittest.TestCase):
 			data=json.dumps(user_data),
 			content_type='application/json')
 
-		result = json.loads(login_res.get_data(as_text=True))
+		result = json.loads(login_res.data.decode())
 		self.assertEqual(result['message'], 'successfully logged in')
-		self.assertEqual(result.status_code, 200)
+		self.assertEqual(login_res.status_code, 200)
 		self.assertTrue(result['access_token'])
 
 	def test_auth_user_not_registered_cant_log_in(self):
